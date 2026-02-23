@@ -16,6 +16,7 @@ from sklearn.preprocessing import OneHotEncoder
 # -------------------------
 def setup_nltk():
     nltk.download('punkt')
+    nltk.download('punkt_tab')
     nltk.download('stopwords')
     nltk.download('wordnet')
     nltk.download('omw-1.4')
@@ -83,21 +84,29 @@ def build_preprocessing_objects(dataset):
     tfidf.fit(all_text)
 
     # ----- Fit OneHotEncoders -----
-    sentiment_enc = OneHotEncoder(sparse_output=False).fit(dataset[['airline_sentiment']])
-    airline_enc = OneHotEncoder(sparse_output=False).fit(dataset[['airline']])
+    sentiment_enc = OneHotEncoder(sparse_output=False).fit(dataset[["airline_sentiment"]])
+    airline_enc = OneHotEncoder(sparse_output=False).fit(dataset[["airline"]])
 
     # ----- Define Collate Function (CLOSURE!) -----
     def custom_collate(batch):
         x_batch_raw, y_batch_raw = zip(*batch)
 
+        y_df = pd.DataFrame(y_batch_raw, columns=["airline_sentiment"])
+
         y_encoded = torch.tensor(
-            sentiment_enc.transform(np.array(y_batch_raw).reshape(-1, 1)),
+            sentiment_enc.transform(y_df),
             dtype=torch.float32
         )
 
-        airlines = [[row[3]] for row in x_batch_raw]
-        airline_ohe = torch.tensor(airline_enc.transform(airlines), dtype=torch.float32)
+        airlines = pd.DataFrame(
+                            [row[3] for row in x_batch_raw],
+                            columns=["airline"]
+                        )
 
+        airline_ohe = torch.tensor(
+                            airline_enc.transform(airlines),
+                            dtype=torch.float32
+                        )
         def safe(x):
             if x is None or isinstance(x, float):
                 return ""

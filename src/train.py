@@ -49,9 +49,10 @@ test_loader.collate_fn = custom_collate
 # -----------------------------
 num_airlines = len(airline_enc.categories_[0])
 num_classes = len(sentiment_enc.categories_[0])
+structured_dim = 2 + num_airlines   # VERY IMPORTANT
 tfidf_dim = config.TFIDF_MAX_FEATURES
 
-model = AirlineSentimentModel(num_airlines, tfidf_dim, num_classes)
+model = AirlineSentimentModel(structured_dim, tfidf_dim, num_classes)
 model = model.to(device)
 
 
@@ -78,7 +79,16 @@ for epoch in range(config.EPOCHS):
 
         optimizer.zero_grad()
 
-        outputs = model(batch)
+        numeric = batch["numeric_and_ohe"]
+        text = batch["text_data"]
+        reason = batch["reason_data"]
+
+        outputs = model(
+                    batch["numeric_and_ohe"],
+                    batch["text_data"],
+                    batch["reason_data"]
+                )
+
         targets = torch.argmax(batch["targets"], dim=1)
 
         loss = criterion(outputs, targets)
@@ -98,7 +108,16 @@ for epoch in range(config.EPOCHS):
         for batch in test_loader:
             batch = move_batch_to_device(batch, device)
 
-            outputs = model(batch)
+            numeric = batch["numeric_and_ohe"]
+            text = batch["text_data"]
+            reason = batch["reason_data"]
+
+            outputs = model(
+                    batch["numeric_and_ohe"],
+                    batch["text_data"],
+                    batch["reason_data"]
+                )
+
             targets = torch.argmax(batch["targets"], dim=1)
 
             loss = criterion(outputs, targets)

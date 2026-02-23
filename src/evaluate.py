@@ -41,9 +41,10 @@ test_loader.collate_fn = custom_collate
 # -----------------------------
 num_airlines = len(airline_enc.categories_[0])
 num_classes = len(sentiment_enc.categories_[0])
+structured_dim = 2 + num_airlines   # ← THIS WAS MISSING
 tfidf_dim = config.TFIDF_MAX_FEATURES
 
-model = AirlineSentimentModel(num_airlines, tfidf_dim, num_classes)
+model = AirlineSentimentModel(structured_dim, tfidf_dim, num_classes)
 
 
 # -----------------------------
@@ -71,7 +72,11 @@ with torch.no_grad():
     for batch in test_loader:
         batch = move_batch_to_device(batch, device)
 
-        outputs = model(batch)
+        outputs = model(
+                    batch["numeric_and_ohe"],
+                    batch["text_data"],
+                    batch["reason_data"]
+                )
         preds = torch.argmax(outputs, dim=1)
         targets = torch.argmax(batch["targets"], dim=1)
 

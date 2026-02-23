@@ -22,8 +22,8 @@ def load_dataset(csv_path):
 # 2. Split into X and y
 # -----------------------------
 def split_features_labels(dataset):
-    X = dataset.iloc[:, 1:5]
-    y = dataset.iloc[:, 0]
+    X = dataset.iloc[:, 1:6].values
+    y = dataset.iloc[:, 0].values
 
     return train_test_split(X, y, test_size=0.2, random_state=0)
 
