@@ -1,6 +1,6 @@
 import torch
 from torchmetrics import Accuracy, Precision, Recall, F1Score, ConfusionMatrix
-
+import matplotlib.pyplot as plt
 import config
 
 from data_loader import load_data
@@ -92,3 +92,19 @@ print("Precision:", precision.compute().item())
 print("Recall   :", recall.compute().item())
 print("F1 Score :", f1.compute().item())
 print("\nConfusion Matrix:\n", confmat.compute())
+
+cm_np = confmat.compute().cpu().numpy()
+
+plt.figure()
+plt.imshow(cm_np)
+plt.title("Confusion Matrix")
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.colorbar()
+
+for i in range(cm_np.shape[0]):
+    for j in range(cm_np.shape[1]):
+        plt.text(j, i, cm_np[i, j], ha="center", va="center")
+
+plt.savefig("confusion_matrix.png")
+plt.close()

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
+import matplotlib.pyplot as plt
 import config
 
 from data_loader import load_data
@@ -65,9 +65,13 @@ optimizer = optim.Adam(model.parameters(), lr=config.LEARNING_RATE)
 # -----------------------------
 # 8. Training Loop
 # -----------------------------
+train_losses = []
+val_losses = []
+
 for epoch in range(config.EPOCHS):
+    # ------------------ TRAIN ------------------
     model.train()
-    total_loss = 0
+    running_train_loss = 0
 
     for batch in train_loader:
         batch = move_batch_to_device(batch, device)
@@ -75,22 +79,47 @@ for epoch in range(config.EPOCHS):
         optimizer.zero_grad()
 
         outputs = model(batch)
-
-        # convert one-hot → class index
         targets = torch.argmax(batch["targets"], dim=1)
 
         loss = criterion(outputs, targets)
-
         loss.backward()
         optimizer.step()
 
-        total_loss += loss.item()
+        running_train_loss += loss.item()
 
-    print_epoch_stats(epoch + 1, total_loss)
+    epoch_train_loss = running_train_loss / len(train_loader)
+    train_losses.append(epoch_train_loss)
 
+    # ------------------ VALIDATION ------------------
+    model.eval()
+    running_val_loss = 0
 
-print("Training Finished.")
+    with torch.no_grad():
+        for batch in test_loader:
+            batch = move_batch_to_device(batch, device)
+
+            outputs = model(batch)
+            targets = torch.argmax(batch["targets"], dim=1)
+
+            loss = criterion(outputs, targets)
+            running_val_loss += loss.item()
+
+    epoch_val_loss = running_val_loss / len(test_loader)
+    val_losses.append(epoch_val_loss)
+
+    print(f"Epoch {epoch+1}: Train Loss = {epoch_train_loss:.4f}, Val Loss = {epoch_val_loss:.4f}")
+
+plt.figure()
+plt.plot(range(1, config.EPOCHS + 1), train_losses, label="Training Loss")
+plt.plot(range(1, config.EPOCHS + 1), val_losses, label="Validation Loss")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title("Loss vs Epoch")
+plt.legend()
+plt.savefig("loss_curve.png")
+plt.close()
 # -----------------------------
 # 9. Save trained model
 # -----------------------------
 save_checkpoint(model, config.MODEL_SAVE_PATH)
+print("Training Finished Successfully.")
