@@ -9,7 +9,7 @@ DATA_PATH = "data/raw_dataset.csv"
 # -----------------------------
 BATCH_SIZE_TRAIN = 1000
 BATCH_SIZE_TEST = 100
-EPOCHS = 5
+EPOCHS = 10
 LEARNING_RATE = 1e-3
 
 
