@@ -1,0 +1,9 @@
+The requirements to run this code are:
+ Python 3.8+
+ PyTorch
+ NumPy
+ Pandas
+ Matplotlib
+ Scikit-learn
+ NLTK
+You must run src/train.py and src/evaluate.py to obtain the results.
